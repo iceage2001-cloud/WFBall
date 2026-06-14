@@ -71,6 +71,14 @@ const AD_SLOTS = {
   leaderboard: "5709897332", // WC Quiz Leaderboard
   small: "5122403115", // small_placement
 };
+const GUIDE_LINKS = [
+  { href: "/wc-2026-format.html", label: "WC 2026 Format Explained" },
+  { href: "/host-cities-guide.html", label: "Host Cities and Stadium Guide" },
+  { href: "/teams-to-watch-2026.html", label: "Top Teams to Watch in 2026" },
+  { href: "/first-time-fan-guide.html", label: "First-Time Fan Survival Guide" },
+  { href: "/about.html", label: "About This Portal" },
+  { href: "/faq.html", label: "FAQ and Editorial Policy" },
+];
 const SUPPORT_LINK = "https://buy.stripe.com/test_support_link"; // Replace with Razorpay/Stripe/BuyMeACoffee
 const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21"; // Replace with your affiliate URL
 
@@ -338,6 +346,29 @@ export default function WCQuizApp() {
               )}
             </div>
           ))}
+        </div>
+
+        <div style={{ ...card({ marginTop: 14, padding: 14 }) }}>
+          <div style={{ fontSize: 13, color: GOLD, fontWeight: 700, marginBottom: 8 }}>World Cup Guides</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+            {GUIDE_LINKS.map(link => (
+              <a
+                key={link.href}
+                href={link.href}
+                style={{
+                  textDecoration: "none",
+                  color: "#cdebd8",
+                  fontSize: 13,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 10,
+                  padding: "9px 10px",
+                  background: "rgba(255,255,255,0.03)",
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
 
         <RevenueBlock />
