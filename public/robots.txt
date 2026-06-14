@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wf-ball.vercel.app/sitemap.xml
