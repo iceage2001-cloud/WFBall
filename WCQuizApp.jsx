@@ -79,8 +79,11 @@ const GUIDE_LINKS = [
   { href: "/about.html", label: "About This Portal" },
   { href: "/faq.html", label: "FAQ and Editorial Policy" },
 ];
-const SUPPORT_LINK = "https://buy.stripe.com/test_support_link"; // Replace with Razorpay/Stripe/BuyMeACoffee
-const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21"; // Replace with your affiliate URL
+const SUPPORT_LINK = "mailto:contact.wcquizportal@gmail.com?subject=Sponsor%20WC%202026%20Quiz%20Portal";
+const UPI_DONATE_LINK = "upi://pay?pa=your-upi-id@okaxis&pn=WC%202026%20Quiz%20Portal&cu=INR";
+const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21";
+const HAS_AFFILIATE_LINK = !AFFILIATE_LINK.includes("tag=yourtag-21");
+const HAS_UPI_DONATE = !UPI_DONATE_LINK.includes("your-upi-id@");
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
@@ -127,6 +130,11 @@ function AdBanner({ size = "leaderboard" }) {
 }
 
 function RevenueBlock() {
+  const primaryEarnHref = HAS_AFFILIATE_LINK ? AFFILIATE_LINK : "/contact.html";
+  const primaryEarnLabel = HAS_AFFILIATE_LINK ? "Shop Football Deals" : "Partner Deals (Enable Affiliate Tag)";
+  const supportHref = HAS_UPI_DONATE ? UPI_DONATE_LINK : SUPPORT_LINK;
+  const supportLabel = HAS_UPI_DONATE ? "Donate via UPI" : "Advertise / Sponsor";
+
   return (
     <div style={{
       marginTop: 14,
@@ -137,17 +145,17 @@ function RevenueBlock() {
     }}>
       <div style={{ fontSize: 12, color: "#bbb", marginBottom: 10 }}>More ways to support this portal</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <a href={AFFILIATE_LINK} target="_blank" rel="noreferrer" style={{
+        <a href={primaryEarnHref} target="_blank" rel="noreferrer" style={{
           textDecoration: "none", textAlign: "center", padding: "10px 8px",
           borderRadius: 10, border: "1px solid rgba(245,197,24,0.3)", color: GOLD, fontSize: 12, fontWeight: 700,
         }}>
-          Shop Football Deals
+          {primaryEarnLabel}
         </a>
-        <a href={SUPPORT_LINK} target="_blank" rel="noreferrer" style={{
+        <a href={supportHref} target="_blank" rel="noreferrer" style={{
           textDecoration: "none", textAlign: "center", padding: "10px 8px",
           borderRadius: 10, border: "1px solid rgba(34,197,94,0.35)", color: "#86efac", fontSize: 12, fontWeight: 700,
         }}>
-          Support This Quiz
+          {supportLabel}
         </a>
       </div>
     </div>
