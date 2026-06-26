@@ -38,6 +38,18 @@ const ALL_QUESTIONS = {
     { q: "Which club is Lionel Messi associated with as of 2026?", opts: ["Barcelona", "PSG", "Inter Miami", "Al-Hilal"], ans: 2 },
     { q: "Which team knocked Brazil out of the 2022 World Cup quarterfinals?", opts: ["Argentina", "Croatia", "France", "Netherlands"], ans: 1 },
   ],
+  "Tournament Timeline": [
+    { q: "When does the FIFA World Cup 2026 tournament begin?", opts: ["June 8, 2026", "June 11, 2026", "June 15, 2026", "June 20, 2026"], ans: 1 },
+    { q: "When is the FIFA World Cup 2026 final scheduled?", opts: ["July 10, 2026", "July 14, 2026", "July 19, 2026", "July 25, 2026"], ans: 2 },
+    { q: "How many groups will the tournament have?", opts: ["8", "10", "12", "16"], ans: 2 },
+    { q: "How many host cities are planned for the tournament?", opts: ["10", "12", "14", "16"], ans: 3 },
+    { q: "How many matches are planned in total?", opts: ["80", "96", "104", "120"], ans: 2 },
+    { q: "Which country is NOT a host nation?", opts: ["USA", "Canada", "Mexico", "Brazil"], ans: 3 },
+    { q: "How many teams will take part?", opts: ["32", "40", "48", "56"], ans: 2 },
+    { q: "Which stage comes right after the group stage?", opts: ["Round of 32", "Semi-finals", "Final", "Third-place play-off"], ans: 0 },
+    { q: "Which of these is a host city for the tournament?", opts: ["Buenos Aires", "Toronto", "Lisbon", "Seoul"], ans: 1 },
+    { q: "What is the official tournament title?", opts: ["FIFA World Cup 2026", "World Cup 2026", "FIFA 2026", "World Championship 2026"], ans: 0 },
+  ],
   "Rules & Records": [
     { q: "How many players does each team field in a standard football match?", opts: ["9", "10", "11", "12"], ans: 2 },
     { q: "What color card results in immediate dismissal from the match?", opts: ["Yellow", "Orange", "Red", "Black"], ans: 2 },
@@ -53,16 +65,25 @@ const ALL_QUESTIONS = {
 };
 
 const CATEGORIES = Object.keys(ALL_QUESTIONS);
-const CAT_ICONS = { "WC 2026": "🏆", "History": "📜", "Teams & Players": "⚽", "Rules & Records": "📋" };
+const CAT_ICONS = { "WC 2026": "🏆", "History": "📜", "Teams & Players": "⚽", "Tournament Timeline": "🗓️", "Rules & Records": "📋" };
 const CAT_DESC = {
   "WC 2026": "Current tournament facts",
   "History": "Classic World Cup moments",
   "Teams & Players": "Stars & nations",
+  "Tournament Timeline": "Key dates and schedule",
   "Rules & Records": "Laws of the game",
 };
 
 const TIMER_MAX = 15;
 const GOLD = "#F5C518";
+const MATCH_SCHEDULE = [
+  { label: "Opening Match", countryA: "Mexico", countryB: "USA", flagA: "🇲🇽", flagB: "🇺🇸", date: "11 Jun 2026", time: "20:00 local", venue: "Mexico City", startTime: "2026-06-11T20:00:00" },
+  { label: "Group Stage", countryA: "Canada", countryB: "Belgium", flagA: "🇨🇦", flagB: "🇧🇪", date: "12 Jun 2026", time: "18:00 local", venue: "Toronto", startTime: "2026-06-12T18:00:00" },
+  { label: "Round of 32", countryA: "USA", countryB: "Netherlands", flagA: "🇺🇸", flagB: "🇳🇱", date: "28 Jun 2026", time: "16:00 local", venue: "Seattle", startTime: "2026-06-28T16:00:00" },
+  { label: "Quarter-finals", countryA: "Argentina", countryB: "Germany", flagA: "🇦🇷", flagB: "🇩🇪", date: "09 Jul 2026", time: "20:00 local", venue: "Kansas City", startTime: "2026-07-09T20:00:00" },
+  { label: "Semi-finals", countryA: "France", countryB: "Brazil", flagA: "🇫🇷", flagB: "🇧🇷", date: "14 Jul 2026", time: "20:00 local", venue: "Dallas", startTime: "2026-07-14T20:00:00" },
+  { label: "Final", countryA: "Argentina", countryB: "France", flagA: "🇦🇷", flagB: "🇫🇷", date: "19 Jul 2026", time: "20:00 local", venue: "New York/New Jersey", startTime: "2026-07-19T20:00:00" },
+];
 const GREEN_DARK = "#0A3D2B";
 const CARD_BG = "rgba(255,255,255,0.07)";
 const CARD_BORDER = "rgba(245,197,24,0.2)";
@@ -80,12 +101,111 @@ const GUIDE_LINKS = [
   { href: "/faq.html", label: "FAQ and Editorial Policy" },
 ];
 const SUPPORT_LINK = "mailto:contact.wcquizportal@gmail.com?subject=Sponsor%20WC%202026%20Quiz%20Portal";
-const UPI_DONATE_LINK = "upi://pay?pa=your-upi-id@okaxis&pn=WC%202026%20Quiz%20Portal&cu=INR";
+const OBFUSCATED_UPI_ID = "aWNlYWdlMjAwMUBva2ljaWNp";
+const DECODED_UPI_ID = (() => {
+  try { return atob(OBFUSCATED_UPI_ID); } catch { return "iceage2001@okicici"; }
+})();
+const UPI_DONATE_LINK = `upi://pay?pa=${DECODED_UPI_ID}&pn=WC%202026%20Quiz%20Portal&tn=Support%20via%20UPI&cu=INR`;
 const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21";
 const HAS_AFFILIATE_LINK = !AFFILIATE_LINK.includes("tag=yourtag-21");
-const HAS_UPI_DONATE = !UPI_DONATE_LINK.includes("your-upi-id@");
+const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4;
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function CountdownBanner({ compact = false }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [nextMatch, setNextMatch] = useState(MATCH_SCHEDULE[0]);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const upcoming = [...MATCH_SCHEDULE].find((match) => new Date(match.startTime) > now) || MATCH_SCHEDULE[0];
+      setNextMatch(upcoming);
+
+      const diff = Math.max(0, new Date(upcoming.startTime) - now);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div style={{
+      marginBottom: 14,
+      border: "1px solid rgba(245,197,24,0.2)",
+      borderRadius: 14,
+      background: "linear-gradient(135deg, rgba(245,197,24,0.16), rgba(255,255,255,0.05))",
+      padding: 12,
+    }}>
+      <div style={{ fontSize: compact ? 10 : 12, color: GOLD, fontWeight: 800, marginBottom: compact ? 6 : 8, letterSpacing: 1.1, textTransform: "uppercase" }}>
+        Next Match Countdown
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: compact ? 4 : 8, flexWrap: "wrap", marginBottom: compact ? 6 : 8 }}>
+        {[
+          { label: "Days", value: timeLeft.days },
+          { label: "Hours", value: timeLeft.hours },
+          { label: "Mins", value: timeLeft.minutes },
+          { label: "Secs", value: timeLeft.seconds },
+        ].map((item) => (
+          <div key={item.label} style={{ flex: 1, minWidth: compact ? 46 : 70, textAlign: "center", background: "rgba(7,28,18,0.7)", borderRadius: 10, padding: compact ? "6px 4px" : "8px 6px" }}>
+            <div style={{ fontSize: compact ? 13 : 16, fontWeight: 800, color: GOLD }}>{String(item.value).padStart(2, "0")}</div>
+            <div style={{ fontSize: compact ? 8 : 10, color: "#b9c9be", textTransform: "uppercase" }}>{item.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ color: "#f8f9fa", fontSize: compact ? 12 : 13, fontWeight: 700 }}>{nextMatch.label}</div>
+      <div style={{ color: "#f8f9fa", fontSize: compact ? 12 : 13, fontWeight: 700, marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 18, lineHeight: 1 }}>{nextMatch.flagA}</span>
+        <span>{nextMatch.countryA}</span>
+        <span>vs</span>
+        <span>{nextMatch.countryB}</span>
+        <span style={{ fontSize: 18, lineHeight: 1 }}>{nextMatch.flagB}</span>
+      </div>
+      <div style={{ color: "#b9c9be", fontSize: compact ? 11 : 12, marginTop: 3 }}>{nextMatch.date} · {nextMatch.time} · {nextMatch.venue}</div>
+    </div>
+  );
+}
+
+function ScheduleTable() {
+  return (
+    <div style={{
+      marginBottom: 14,
+      border: "1px solid rgba(245,197,24,0.2)",
+      borderRadius: 14,
+      background: "rgba(255,255,255,0.04)",
+      padding: 12,
+    }}>
+      <div style={{ fontSize: 12, color: GOLD, fontWeight: 800, marginBottom: 8, letterSpacing: 1.1, textTransform: "uppercase" }}>
+        Full Match Schedule
+      </div>
+      <div style={{ display: "grid", gap: 8, maxHeight: 280, overflowY: "auto", paddingRight: 4 }}>
+        {MATCH_SCHEDULE.map((item, idx) => (
+          <div key={`${item.label}-${idx}`} style={{ display: "grid", gridTemplateColumns: "90px 1fr 90px", gap: 8, alignItems: "center", borderBottom: idx < MATCH_SCHEDULE.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none", paddingBottom: idx < MATCH_SCHEDULE.length - 1 ? 8 : 0 }}>
+            <div style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}>{item.date}</div>
+            <div>
+              <div style={{ color: "#f8f9fa", fontSize: 13, fontWeight: 700 }}>{item.label}</div>
+              <div style={{ color: "#f8f9fa", fontSize: 12, marginTop: 2, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{item.flagA}</span>
+                <span>{item.countryA}</span>
+                <span>vs</span>
+                <span>{item.countryB}</span>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{item.flagB}</span>
+              </div>
+              <div style={{ color: "#88a395", fontSize: 11, marginTop: 2 }}>{item.venue}</div>
+            </div>
+            <div style={{ color: "#b9c9be", fontSize: 12, textAlign: "right" }}>{item.time}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─── Ad Banner ───────────────────────────────────────────────────────────────
 function AdBanner({ size = "leaderboard" }) {
@@ -130,10 +250,21 @@ function AdBanner({ size = "leaderboard" }) {
 }
 
 function RevenueBlock() {
-  const primaryEarnHref = HAS_AFFILIATE_LINK ? AFFILIATE_LINK : "/contact.html";
-  const primaryEarnLabel = HAS_AFFILIATE_LINK ? "Shop Football Deals" : "Partner Deals (Enable Affiliate Tag)";
-  const supportHref = HAS_UPI_DONATE ? UPI_DONATE_LINK : SUPPORT_LINK;
-  const supportLabel = HAS_UPI_DONATE ? "Donate via UPI" : "Advertise / Sponsor";
+  const supportLabel = "Support via UPI";
+  const sponsorLabel = "Advertise / Sponsor";
+
+  const handleDonateClick = (event) => {
+    event.preventDefault();
+    if (!HAS_UPI_DONATE) {
+      window.location.href = SUPPORT_LINK;
+      return;
+    }
+    try {
+      window.location.href = UPI_DONATE_LINK;
+    } catch {
+      window.location.href = SUPPORT_LINK;
+    }
+  };
 
   return (
     <div style={{
@@ -143,19 +274,35 @@ function RevenueBlock() {
       borderRadius: 12,
       padding: 12,
     }}>
-      <div style={{ fontSize: 12, color: "#bbb", marginBottom: 10 }}>More ways to support this portal</div>
+      <div style={{ fontSize: 12, color: "#bbb", marginBottom: 10 }}>Support this portal</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <a href={primaryEarnHref} target="_blank" rel="noreferrer" style={{
-          textDecoration: "none", textAlign: "center", padding: "10px 8px",
-          borderRadius: 10, border: "1px solid rgba(245,197,24,0.3)", color: GOLD, fontSize: 12, fontWeight: 700,
-        }}>
-          {primaryEarnLabel}
-        </a>
-        <a href={supportHref} target="_blank" rel="noreferrer" style={{
-          textDecoration: "none", textAlign: "center", padding: "10px 8px",
-          borderRadius: 10, border: "1px solid rgba(34,197,94,0.35)", color: "#86efac", fontSize: 12, fontWeight: 700,
+        <a href={UPI_DONATE_LINK} onClick={handleDonateClick} style={{
+          display: "block",
+          textDecoration: "none",
+          textAlign: "center",
+          padding: "11px 10px",
+          borderRadius: 10,
+          border: "1px solid rgba(34,197,94,0.35)",
+          color: "#86efac",
+          fontSize: 13,
+          fontWeight: 800,
+          background: "rgba(34,197,94,0.08)",
         }}>
           {supportLabel}
+        </a>
+        <a href="/contact.html" style={{
+          display: "block",
+          textDecoration: "none",
+          textAlign: "center",
+          padding: "11px 10px",
+          borderRadius: 10,
+          border: "1px solid rgba(245,197,24,0.3)",
+          color: GOLD,
+          fontSize: 13,
+          fontWeight: 800,
+          background: "rgba(245,197,24,0.08)",
+        }}>
+          {sponsorLabel}
         </a>
       </div>
     </div>
@@ -312,28 +459,35 @@ export default function WCQuizApp() {
       <div style={{ width: "100%", maxWidth: 480 }}>
         <AdBanner size="leaderboard" />
 
-        <div style={{ textAlign: "center", paddingBottom: 8 }}>
-          <div style={{ fontSize: 64, lineHeight: 1 }}>🏆</div>
-          <h1 style={{ fontSize: 34, fontWeight: 900, color: GOLD, letterSpacing: 3, margin: "8px 0 4px", textTransform: "uppercase" }}>
-            WC 2026 Quiz
-          </h1>
-          <p style={{ color: "#888", fontSize: 13, margin: "0 0 6px" }}>
-            FIFA World Cup · Jun 11 – Jul 19, 2026
-          </p>
-          <p style={{ color: "#bbb", fontSize: 15, margin: "0 0 28px", lineHeight: 1.6 }}>
-            10 questions · 15 sec each · Time bonus points<br />
-            How high can you score?
-          </p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 32, fontWeight: 900, color: GOLD, letterSpacing: 2, marginBottom: 4, textTransform: "uppercase" }}>
+              WC 2026 Quiz
+            </div>
+            <div style={{ color: "#888", fontSize: 12 }}>
+              FIFA World Cup · Jun 11 – Jul 19, 2026
+            </div>
+            <div style={{ color: "#bbb", fontSize: 14, marginTop: 8, lineHeight: 1.5 }}>
+              10 questions · 15 sec each · Time bonus points
+            </div>
+          </div>
+          <div style={{ width: 180 }}>
+            <CountdownBanner compact />
+          </div>
+        </div>
 
+        <div style={{ textAlign: "center", paddingBottom: 16 }}>
           <button onClick={() => setScreen("category")} style={{
             background: GOLD, color: GREEN_DARK, border: "none",
             borderRadius: 50, padding: "15px 44px", fontSize: 17,
             fontWeight: 900, cursor: "pointer", letterSpacing: 1,
-            boxShadow: `0 0 32px ${GOLD}66`, marginBottom: 32,
+            boxShadow: `0 0 32px ${GOLD}66`, marginBottom: 12,
           }}>
             KICK OFF ⚽
           </button>
         </div>
+
+        <ScheduleTable />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {CATEGORIES.map(cat => (
