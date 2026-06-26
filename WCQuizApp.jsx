@@ -105,7 +105,17 @@ const OBFUSCATED_UPI_ID = "aWNlYWdlMjAwMUBva2ljaWNp";
 const DECODED_UPI_ID = (() => {
   try { return atob(OBFUSCATED_UPI_ID); } catch { return "iceage2001@okicici"; }
 })();
-const UPI_DONATE_LINK = `upi://pay?pa=${DECODED_UPI_ID}&pn=WC%202026%20Quiz%20Portal&tn=Support%20via%20UPI&cu=INR`;
+const UPI_QUERY = `pa=${encodeURIComponent(DECODED_UPI_ID)}&pn=${encodeURIComponent("WC 2026 Quiz Portal")}&tn=${encodeURIComponent("Support via UPI")}&cu=INR`;
+const UPI_DONATE_LINK = `upi://pay?${UPI_QUERY}`;
+const UPI_APPS = [
+  { label: "Google Pay", packageName: "com.google.android.apps.nbu.paisa.user" },
+  { label: "PhonePe", packageName: "com.phonepe.app" },
+  { label: "Paytm", packageName: "net.one97.paytm" },
+];
+
+function buildUpiIntentUrl(packageName) {
+  return `intent://pay?${UPI_QUERY}#Intent;scheme=upi;package=${packageName};end`;
+}
 const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21";
 const HAS_AFFILIATE_LINK = !AFFILIATE_LINK.includes("tag=yourtag-21");
 const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4;
@@ -253,6 +263,19 @@ function RevenueBlock() {
   const supportLabel = "Support via UPI";
   const sponsorLabel = "Advertise / Sponsor";
   const [upiMessage, setUpiMessage] = useState("");
+  const isAndroid = /Android/i.test(navigator.userAgent || "");
+
+  const openUpiApp = (packageName) => {
+    if (!HAS_UPI_DONATE) {
+      setUpiMessage("UPI is not configured yet.");
+      return;
+    }
+    try {
+      window.location.href = buildUpiIntentUrl(packageName);
+    } catch {
+      setUpiMessage("Could not open selected UPI app. Please try another app option.");
+    }
+  };
 
   const handleDonateClick = (event) => {
     event.preventDefault();
@@ -276,6 +299,8 @@ function RevenueBlock() {
           } catch {
             setUpiMessage(`UPI app not found in this browser. Use this UPI ID in your app: ${DECODED_UPI_ID}`);
           }
+        } else if (isMobile && isAndroid) {
+          setUpiMessage("If it does not open automatically, use Open with: Google Pay / PhonePe / Paytm buttons below.");
         }
       }, 1200);
     } catch {
@@ -322,6 +347,32 @@ function RevenueBlock() {
           {sponsorLabel}
         </a>
       </div>
+      {isAndroid && (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 11, color: "#cbd5e1", marginBottom: 6 }}>Open with UPI app</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            {UPI_APPS.map((app) => (
+              <button
+                key={app.packageName}
+                type="button"
+                onClick={() => openUpiApp(app.packageName)}
+                style={{
+                  padding: "8px 6px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  background: "rgba(255,255,255,0.04)",
+                  color: "#dbeafe",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {app.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {upiMessage && (
         <div style={{ marginTop: 10, fontSize: 11, color: "#cbd5e1", lineHeight: 1.4 }}>
           {upiMessage}
