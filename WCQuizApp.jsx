@@ -77,12 +77,19 @@ const CAT_DESC = {
 const TIMER_MAX = 15;
 const GOLD = "#F5C518";
 const MATCH_SCHEDULE = [
-  { label: "Opening Match", countryA: "Mexico", codeA: "MEX", isoA: "mx", countryB: "USA", codeB: "USA", isoB: "us", date: "11 Jun 2026", time: "20:00 local", venue: "Mexico City", startTime: "2026-06-11T20:00:00" },
-  { label: "Group Stage", countryA: "Canada", codeA: "CAN", isoA: "ca", countryB: "Belgium", codeB: "BEL", isoB: "be", date: "12 Jun 2026", time: "18:00 local", venue: "Toronto", startTime: "2026-06-12T18:00:00" },
-  { label: "Round of 32", countryA: "USA", codeA: "USA", isoA: "us", countryB: "Netherlands", codeB: "NED", isoB: "nl", date: "28 Jun 2026", time: "16:00 local", venue: "Seattle", startTime: "2026-06-28T16:00:00" },
-  { label: "Quarter-finals", countryA: "Argentina", codeA: "ARG", isoA: "ar", countryB: "Germany", codeB: "GER", isoB: "de", date: "09 Jul 2026", time: "20:00 local", venue: "Kansas City", startTime: "2026-07-09T20:00:00" },
-  { label: "Semi-finals", countryA: "France", codeA: "FRA", isoA: "fr", countryB: "Brazil", codeB: "BRA", isoB: "br", date: "14 Jul 2026", time: "20:00 local", venue: "Dallas", startTime: "2026-07-14T20:00:00" },
-  { label: "Final", countryA: "Argentina", codeA: "ARG", isoA: "ar", countryB: "France", codeB: "FRA", isoB: "fr", date: "19 Jul 2026", time: "20:00 local", venue: "New York/New Jersey", startTime: "2026-07-19T20:00:00" },
+  { label: "First Stage Group A", status: "FT", confirmed: true, countryA: "Mexico", codeA: "MEX", isoA: "mx", countryB: "South Africa", codeB: "RSA", isoB: "za", date: "12 Jun 2026", time: "FT", result: "2-0", venue: "Mexico City Stadium (Mexico City)", kickoffAt: null },
+  { label: "First Stage Group B", status: "FT", confirmed: true, countryA: "Canada", codeA: "CAN", isoA: "ca", countryB: "Bosnia and Herzegovina", codeB: "BIH", isoB: "ba", date: "13 Jun 2026", time: "FT", result: "1-1", venue: "Toronto Stadium (Toronto)", kickoffAt: null },
+  { label: "First Stage Group D", status: "FT", confirmed: true, countryA: "USA", codeA: "USA", isoA: "us", countryB: "Paraguay", codeB: "PAR", isoB: "py", date: "13 Jun 2026", time: "FT", result: "4-1", venue: "Los Angeles Stadium (Los Angeles)", kickoffAt: null },
+  { label: "First Stage Group J", status: "FT", confirmed: true, countryA: "Argentina", codeA: "ARG", isoA: "ar", countryB: "Algeria", codeB: "ALG", isoB: "dz", date: "17 Jun 2026", time: "FT", result: "3-0", venue: "Kansas City Stadium (Kansas City)", kickoffAt: null },
+  { label: "First Stage Group D", status: "FT", confirmed: true, countryA: "Turkiye", codeA: "TUR", isoA: "tr", countryB: "USA", codeB: "USA", isoB: "us", date: "26 Jun 2026", time: "FT", result: "3-2", venue: "Los Angeles Stadium (Los Angeles)", kickoffAt: null },
+  { label: "First Stage Group I", status: "Upcoming", confirmed: true, countryA: "Senegal", codeA: "SEN", isoA: "sn", countryB: "Iraq", codeB: "IRQ", isoB: "iq", date: "27 Jun 2026", time: "00:30", result: null, venue: "Toronto Stadium (Toronto)", kickoffAt: "2026-06-27T00:30:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: true, countryA: "South Africa", codeA: "RSA", isoA: "za", countryB: "Canada", codeB: "CAN", isoB: "ca", date: "29 Jun 2026", time: "00:30", result: null, venue: "Los Angeles Stadium (Los Angeles)", kickoffAt: "2026-06-29T00:30:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: true, countryA: "Brazil", codeA: "BRA", isoA: "br", countryB: "Japan", codeB: "JPN", isoB: "jp", date: "29 Jun 2026", time: "22:30", result: null, venue: "Houston Stadium (Houston)", kickoffAt: "2026-06-29T22:30:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: false, countryA: "Germany", codeA: "GER", isoA: "de", countryB: "3ABCDF", codeB: "3ABCDF", isoB: null, date: "30 Jun 2026", time: "02:00", result: null, venue: "Boston Stadium (Boston)", kickoffAt: "2026-06-30T02:00:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: true, countryA: "Netherlands", codeA: "NED", isoA: "nl", countryB: "Morocco", codeB: "MAR", isoB: "ma", date: "30 Jun 2026", time: "06:30", result: null, venue: "Monterrey Stadium (Monterrey)", kickoffAt: "2026-06-30T06:30:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: false, countryA: "Mexico", codeA: "MEX", isoA: "mx", countryB: "3CEFHI", codeB: "3CEFHI", isoB: null, date: "01 Jul 2026", time: "06:30", result: null, venue: "Mexico City Stadium (Mexico City)", kickoffAt: "2026-07-01T06:30:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: true, countryA: "USA", codeA: "USA", isoA: "us", countryB: "Bosnia and Herzegovina", codeB: "BIH", isoB: "ba", date: "02 Jul 2026", time: "05:30", result: null, venue: "San Francisco Bay Area Stadium", kickoffAt: "2026-07-02T05:30:00" },
+  { label: "Round of 32", status: "Upcoming", confirmed: false, countryA: "Argentina", codeA: "ARG", isoA: "ar", countryB: "2H", codeB: "2H", isoB: null, date: "04 Jul 2026", time: "03:30", result: null, venue: "Miami Stadium (Miami)", kickoffAt: "2026-07-04T03:30:00" },
 ];
 const GREEN_DARK = "#0A3D2B";
 const CARD_BG = "rgba(255,255,255,0.07)";
@@ -123,8 +130,8 @@ const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
 function TeamBadge({ iso, code, name }) {
-  const [imgError, setImgError] = useState(false);
-  const flagUrl = `https://flagcdn.com/w20/${iso}.png`;
+  const [imgError, setImgError] = useState(!iso);
+  const flagUrl = iso ? `https://flagcdn.com/w20/${iso}.png` : "";
 
   return (
     <span style={{
@@ -145,20 +152,20 @@ function TeamBadge({ iso, code, name }) {
         <img
           src={flagUrl}
           alt={`${name} flag`}
-          width="20"
-          height="14"
+          width="24"
+          height="16"
           loading="lazy"
           onError={() => setImgError(true)}
-          style={{ borderRadius: 2, objectFit: "cover", border: "1px solid rgba(255,255,255,0.25)" }}
+          style={{ borderRadius: 3, objectFit: "cover", border: "1px solid rgba(255,255,255,0.35)", boxShadow: "0 0 8px rgba(0,0,0,0.28)" }}
         />
       ) : (
         <span style={{
-          minWidth: 20,
+          minWidth: 24,
           textAlign: "center",
-          fontSize: 10,
-          padding: "2px 3px",
+          fontSize: 11,
+          padding: "2px 4px",
           borderRadius: 4,
-          border: "1px solid rgba(255,255,255,0.25)",
+          border: "1px solid rgba(255,255,255,0.35)",
           background: "rgba(255,255,255,0.08)",
         }}>
           {code.slice(0, 2)}
@@ -172,15 +179,24 @@ function TeamBadge({ iso, code, name }) {
 
 function CountdownBanner({ compact = false }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [nextMatch, setNextMatch] = useState(MATCH_SCHEDULE[0]);
+  const [nextMatch, setNextMatch] = useState(MATCH_SCHEDULE.find((m) => m.status === "Upcoming" && m.confirmed) || MATCH_SCHEDULE[0]);
 
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
-      const upcoming = [...MATCH_SCHEDULE].find((match) => new Date(match.startTime) > now) || MATCH_SCHEDULE[0];
+      const confirmedUpcoming = MATCH_SCHEDULE
+        .filter((match) => match.status === "Upcoming" && match.confirmed && match.kickoffAt)
+        .sort((a, b) => new Date(a.kickoffAt) - new Date(b.kickoffAt));
+
+      const upcoming = confirmedUpcoming.find((match) => new Date(match.kickoffAt) > now) || confirmedUpcoming[0] || MATCH_SCHEDULE[0];
       setNextMatch(upcoming);
 
-      const diff = Math.max(0, new Date(upcoming.startTime) - now);
+      if (!upcoming.kickoffAt) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      const diff = Math.max(0, new Date(upcoming.kickoffAt) - now);
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
@@ -203,7 +219,7 @@ function CountdownBanner({ compact = false }) {
       padding: 12,
     }}>
       <div style={{ fontSize: compact ? 10 : 12, color: GOLD, fontWeight: 800, marginBottom: compact ? 6 : 8, letterSpacing: 1.1, textTransform: "uppercase" }}>
-        Next Match Countdown
+        Next Confirmed Match Countdown
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", gap: compact ? 4 : 8, flexWrap: "wrap", marginBottom: compact ? 6 : 8 }}>
         {[
@@ -283,7 +299,7 @@ function ScheduleTable() {
                 }}>VS</span>
                 <TeamBadge iso={item.isoB} code={item.codeB} name={item.countryB} />
             </div>
-            <div style={{ color: "#b9c9be", fontSize: 12, textAlign: "right" }}>{item.time}</div>
+            <div style={{ color: "#b9c9be", fontSize: 12, textAlign: "right" }}>{item.result ? `FT ${item.result}` : item.time}</div>
             <div style={{ color: "#88a395", fontSize: 11, textAlign: "right", whiteSpace: "nowrap" }}>{item.venue}</div>
           </div>
         ))}
