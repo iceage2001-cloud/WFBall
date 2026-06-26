@@ -6,22 +6,38 @@
   <title>Host Cities and Stadium Guide - WC 2026</title>
   <meta name="description" content="Practical host city guide for USA, Canada, and Mexico venues for FIFA World Cup 2026." />
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f6f8fa; color: #132030; }
-    main { max-width: 960px; margin: 0 auto; padding: 28px 18px; }
-    .card { background: #fff; border: 1px solid #d9e2ec; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+    :root { --bg-a:#071c12; --bg-b:#0f2d1e; --gold:#f5c518; --text:#e6f2ea; --muted:#9ab6a5; --card:rgba(255,255,255,0.06); --border:rgba(245,197,24,0.22); }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(circle at 12% 2%, rgba(245,197,24,0.15), transparent 32%), linear-gradient(160deg,var(--bg-a) 0%, var(--bg-b) 60%, #06140d 100%); }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 18px 40px; }
+    nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+    nav a { color:var(--text); text-decoration:none; padding:7px 11px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); font-size:13px; }
+    h1 { margin:6px 0 14px; color:var(--gold); text-transform:uppercase; letter-spacing:.8px; font-size:31px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:0 0 30px rgba(0,0,0,.14); transition:transform .2s ease, border-color .2s ease; }
+    .card:hover { transform:translateY(-2px); border-color:rgba(245,197,24,.45); }
+    h2 { margin:0 0 8px; color:#f2e289; }
+    p, li { line-height:1.7; }
+    ul { margin:0 0 10px 18px; padding:0; }
+    .muted { color:var(--muted); }
   </style>
 </head>
 <body>
   <main>
-    <p><a href="/">Home</a> | <a href="/wc-2026-format.html">Format</a> | <a href="/first-time-fan-guide.html">Fan Guide</a></p>
-    <h1>Host Cities and Stadium Guide</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/wc-2026-format.html">Format</a>
+      <a href="/teams-to-watch-2026.html">Teams</a>
+      <a href="/first-time-fan-guide.html">Fan Guide</a>
+    </nav>
+    <h1>Host Cities And Stadium Guide</h1>
 
     <div class="card">
       <p>World Cup 2026 is hosted across the United States, Canada, and Mexico. This multi-country model introduces different climates, travel times, and stadium conditions that can influence team preparation and fan experience.</p>
+      <p class="muted">Planning tip: account for weather shifts and long travel legs between matchdays.</p>
     </div>
 
     <div class="card">
-      <h2>Key travel factors for fans</h2>
+      <h2>Key Travel Factors For Fans</h2>
       <ul>
         <li>Long-distance flights may be required between group and knockout games.</li>
         <li>Weather can vary significantly between northern and southern venues.</li>
@@ -31,13 +47,13 @@
     </div>
 
     <div class="card">
-      <h2>Stadium environment and match tempo</h2>
+      <h2>Stadium Environment And Match Tempo</h2>
       <p>Stadium altitude, humidity, and pitch characteristics can affect passing speed, pressing intensity, and substitution patterns. Teams with strong sports science departments may gain an edge by adapting quickly to local conditions.</p>
       <p>For viewers, this means game styles may differ strongly from one venue to another, even with the same teams.</p>
     </div>
 
     <div class="card">
-      <h2>Why this matters for quiz players</h2>
+      <h2>Why This Matters For Quiz Players</h2>
       <p>Venue context often appears in football trivia and tactical analysis. Understanding host geography helps you answer advanced World Cup questions on scheduling, performance swings, and historical home-region trends.</p>
     </div>
   </main>

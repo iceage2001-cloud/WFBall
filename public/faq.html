@@ -6,34 +6,45 @@
   <title>FAQ - WC 2026 Quiz Portal</title>
   <meta name="description" content="Frequently asked questions about the WC 2026 Quiz Portal, content updates, and ad policy pages." />
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f6f8fa; color: #16202a; }
-    main { max-width: 900px; margin: 0 auto; padding: 28px 18px; }
-    .card { background: #fff; border: 1px solid #d9e2ec; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
-    h2 { margin-bottom: 6px; }
+    :root { --bg-a:#071c12; --bg-b:#0f2d1e; --gold:#f5c518; --text:#e6f2ea; --card:rgba(255,255,255,0.06); --border:rgba(245,197,24,0.22); }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; color:var(--text); background:radial-gradient(circle at 12% 2%, rgba(245,197,24,0.15), transparent 32%), linear-gradient(160deg,var(--bg-a) 0%, var(--bg-b) 60%, #06140d 100%); }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 18px 40px; }
+    nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+    nav a { color:var(--text); text-decoration:none; padding:7px 11px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04); font-size:13px; }
+    h1 { margin:6px 0 14px; color:var(--gold); text-transform:uppercase; letter-spacing:.8px; font-size:31px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:0 0 30px rgba(0,0,0,.14); transition:transform .2s ease, border-color .2s ease; }
+    .card:hover { transform:translateY(-2px); border-color:rgba(245,197,24,.45); }
+    h2 { margin:0 0 8px; color:#f2e289; }
+    p { line-height:1.7; margin:0; }
   </style>
 </head>
 <body>
   <main>
-    <p><a href="/">Home</a> | <a href="/about.html">About</a> | <a href="/contact.html">Contact</a></p>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
     <h1>Frequently Asked Questions</h1>
 
     <div class="card">
-      <h2>How often is quiz content updated?</h2>
+      <h2>How Often Is Quiz Content Updated?</h2>
       <p>We review and refresh question banks and guides whenever major tournament updates are announced or when users report outdated details.</p>
     </div>
 
     <div class="card">
-      <h2>How do you verify facts?</h2>
+      <h2>How Do You Verify Facts?</h2>
       <p>We rely on official match data, FIFA announcements, and established sports reporting. Report any issue and we will review it.</p>
     </div>
 
     <div class="card">
-      <h2>Do you track personal information?</h2>
+      <h2>Do You Track Personal Information?</h2>
       <p>Quiz score data is primarily stored in local browser storage to preserve your experience. See our Privacy Policy for details.</p>
     </div>
 
     <div class="card">
-      <h2>Can users request new quiz topics?</h2>
+      <h2>Can Users Request New Quiz Topics?</h2>
       <p>Yes. Send your suggestions through the contact page, including topic category and question difficulty preference.</p>
     </div>
   </main>
