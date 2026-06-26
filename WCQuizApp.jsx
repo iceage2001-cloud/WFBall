@@ -77,12 +77,12 @@ const CAT_DESC = {
 const TIMER_MAX = 15;
 const GOLD = "#F5C518";
 const MATCH_SCHEDULE = [
-  { label: "Opening Match", countryA: "Mexico", countryB: "USA", flagA: "🇲🇽", flagB: "🇺🇸", date: "11 Jun 2026", time: "20:00 local", venue: "Mexico City", startTime: "2026-06-11T20:00:00" },
-  { label: "Group Stage", countryA: "Canada", countryB: "Belgium", flagA: "🇨🇦", flagB: "🇧🇪", date: "12 Jun 2026", time: "18:00 local", venue: "Toronto", startTime: "2026-06-12T18:00:00" },
-  { label: "Round of 32", countryA: "USA", countryB: "Netherlands", flagA: "🇺🇸", flagB: "🇳🇱", date: "28 Jun 2026", time: "16:00 local", venue: "Seattle", startTime: "2026-06-28T16:00:00" },
-  { label: "Quarter-finals", countryA: "Argentina", countryB: "Germany", flagA: "🇦🇷", flagB: "🇩🇪", date: "09 Jul 2026", time: "20:00 local", venue: "Kansas City", startTime: "2026-07-09T20:00:00" },
-  { label: "Semi-finals", countryA: "France", countryB: "Brazil", flagA: "🇫🇷", flagB: "🇧🇷", date: "14 Jul 2026", time: "20:00 local", venue: "Dallas", startTime: "2026-07-14T20:00:00" },
-  { label: "Final", countryA: "Argentina", countryB: "France", flagA: "🇦🇷", flagB: "🇫🇷", date: "19 Jul 2026", time: "20:00 local", venue: "New York/New Jersey", startTime: "2026-07-19T20:00:00" },
+  { label: "Opening Match", countryA: "Mexico", codeA: "MEX", countryB: "USA", codeB: "USA", flagA: "🇲🇽", flagB: "🇺🇸", date: "11 Jun 2026", time: "20:00 local", venue: "Mexico City", startTime: "2026-06-11T20:00:00" },
+  { label: "Group Stage", countryA: "Canada", codeA: "CAN", countryB: "Belgium", codeB: "BEL", flagA: "🇨🇦", flagB: "🇧🇪", date: "12 Jun 2026", time: "18:00 local", venue: "Toronto", startTime: "2026-06-12T18:00:00" },
+  { label: "Round of 32", countryA: "USA", codeA: "USA", countryB: "Netherlands", codeB: "NED", flagA: "🇺🇸", flagB: "🇳🇱", date: "28 Jun 2026", time: "16:00 local", venue: "Seattle", startTime: "2026-06-28T16:00:00" },
+  { label: "Quarter-finals", countryA: "Argentina", codeA: "ARG", countryB: "Germany", codeB: "GER", flagA: "🇦🇷", flagB: "🇩🇪", date: "09 Jul 2026", time: "20:00 local", venue: "Kansas City", startTime: "2026-07-09T20:00:00" },
+  { label: "Semi-finals", countryA: "France", codeA: "FRA", countryB: "Brazil", codeB: "BRA", flagA: "🇫🇷", flagB: "🇧🇷", date: "14 Jul 2026", time: "20:00 local", venue: "Dallas", startTime: "2026-07-14T20:00:00" },
+  { label: "Final", countryA: "Argentina", codeA: "ARG", countryB: "France", codeB: "FRA", flagA: "🇦🇷", flagB: "🇫🇷", date: "19 Jul 2026", time: "20:00 local", venue: "New York/New Jersey", startTime: "2026-07-19T20:00:00" },
 ];
 const GREEN_DARK = "#0A3D2B";
 const CARD_BG = "rgba(255,255,255,0.07)";
@@ -122,6 +122,28 @@ const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
+function TeamBadge({ flag, code, name }) {
+  return (
+    <span style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "4px 8px",
+      borderRadius: 999,
+      background: "rgba(255,255,255,0.08)",
+      border: "1px solid rgba(255,255,255,0.14)",
+      boxShadow: "0 0 12px rgba(0,0,0,0.18)",
+      fontSize: 12,
+      fontWeight: 700,
+      lineHeight: 1,
+    }}>
+      <span style={{ fontFamily: "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif", fontSize: 16 }}>{flag}</span>
+      <span style={{ color: "#f2e289", fontSize: 11 }}>{code}</span>
+      <span style={{ color: "#eef7f1" }}>{name}</span>
+    </span>
+  );
+}
+
 function CountdownBanner({ compact = false }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [nextMatch, setNextMatch] = useState(MATCH_SCHEDULE[0]);
@@ -151,6 +173,7 @@ function CountdownBanner({ compact = false }) {
       border: "1px solid rgba(245,197,24,0.2)",
       borderRadius: 14,
       background: "linear-gradient(135deg, rgba(245,197,24,0.16), rgba(255,255,255,0.05))",
+      boxShadow: "0 0 24px rgba(245,197,24,0.16)",
       padding: 12,
     }}>
       <div style={{ fontSize: compact ? 10 : 12, color: GOLD, fontWeight: 800, marginBottom: compact ? 6 : 8, letterSpacing: 1.1, textTransform: "uppercase" }}>
@@ -170,12 +193,18 @@ function CountdownBanner({ compact = false }) {
         ))}
       </div>
       <div style={{ color: "#f8f9fa", fontSize: compact ? 12 : 13, fontWeight: 700 }}>{nextMatch.label}</div>
-      <div style={{ color: "#f8f9fa", fontSize: compact ? 12 : 13, fontWeight: 700, marginTop: 4, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 18, lineHeight: 1 }}>{nextMatch.flagA}</span>
-        <span>{nextMatch.countryA}</span>
-        <span>vs</span>
-        <span>{nextMatch.countryB}</span>
-        <span style={{ fontSize: 18, lineHeight: 1 }}>{nextMatch.flagB}</span>
+      <div style={{ color: "#f8f9fa", fontSize: compact ? 12 : 13, fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+        <TeamBadge flag={nextMatch.flagA} code={nextMatch.codeA} name={nextMatch.countryA} />
+        <span style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid rgba(245,197,24,0.35)",
+          background: "rgba(245,197,24,0.12)",
+          color: GOLD,
+          fontSize: 11,
+          letterSpacing: 0.7,
+        }}>VS</span>
+        <TeamBadge flag={nextMatch.flagB} code={nextMatch.codeB} name={nextMatch.countryB} />
       </div>
       <div style={{ color: "#b9c9be", fontSize: compact ? 11 : 12, marginTop: 3 }}>{nextMatch.date} · {nextMatch.time} · {nextMatch.venue}</div>
     </div>
@@ -189,6 +218,7 @@ function ScheduleTable() {
       border: "1px solid rgba(245,197,24,0.2)",
       borderRadius: 14,
       background: "rgba(255,255,255,0.04)",
+      boxShadow: "0 0 24px rgba(0,0,0,0.16)",
       padding: 12,
     }}>
       <div style={{ fontSize: 12, color: GOLD, fontWeight: 800, marginBottom: 8, letterSpacing: 1.1, textTransform: "uppercase" }}>
@@ -201,11 +231,17 @@ function ScheduleTable() {
             <div>
               <div style={{ color: "#f8f9fa", fontSize: 13, fontWeight: 700 }}>{item.label}</div>
               <div style={{ color: "#f8f9fa", fontSize: 12, marginTop: 2, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 16, lineHeight: 1 }}>{item.flagA}</span>
-                <span>{item.countryA}</span>
-                <span>vs</span>
-                <span>{item.countryB}</span>
-                <span style={{ fontSize: 16, lineHeight: 1 }}>{item.flagB}</span>
+                <TeamBadge flag={item.flagA} code={item.codeA} name={item.countryA} />
+                <span style={{
+                  padding: "3px 8px",
+                  borderRadius: 999,
+                  border: "1px solid rgba(245,197,24,0.35)",
+                  background: "rgba(245,197,24,0.12)",
+                  color: GOLD,
+                  fontSize: 10,
+                  letterSpacing: 0.7,
+                }}>VS</span>
+                <TeamBadge flag={item.flagB} code={item.codeB} name={item.countryB} />
               </div>
               <div style={{ color: "#88a395", fontSize: 11, marginTop: 2 }}>{item.venue}</div>
             </div>
