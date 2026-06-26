@@ -252,6 +252,7 @@ function AdBanner({ size = "leaderboard" }) {
 function RevenueBlock() {
   const supportLabel = "Support via UPI";
   const sponsorLabel = "Advertise / Sponsor";
+  const [upiMessage, setUpiMessage] = useState("");
 
   const handleDonateClick = (event) => {
     event.preventDefault();
@@ -259,10 +260,26 @@ function RevenueBlock() {
       window.location.href = SUPPORT_LINK;
       return;
     }
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+
     try {
+      setUpiMessage("Trying to open your UPI app...");
       window.location.href = UPI_DONATE_LINK;
+
+      // On desktop or unsupported browsers, deep links usually do nothing.
+      setTimeout(async () => {
+        if (!isMobile && document.visibilityState === "visible") {
+          try {
+            await navigator.clipboard.writeText(DECODED_UPI_ID);
+            setUpiMessage("UPI app not found in this browser. UPI ID copied. Paste it in any UPI app to pay.");
+          } catch {
+            setUpiMessage(`UPI app not found in this browser. Use this UPI ID in your app: ${DECODED_UPI_ID}`);
+          }
+        }
+      }, 1200);
     } catch {
-      window.location.href = SUPPORT_LINK;
+      setUpiMessage(`Could not open UPI app. Use this UPI ID in your payment app: ${DECODED_UPI_ID}`);
     }
   };
 
@@ -305,6 +322,11 @@ function RevenueBlock() {
           {sponsorLabel}
         </a>
       </div>
+      {upiMessage && (
+        <div style={{ marginTop: 10, fontSize: 11, color: "#cbd5e1", lineHeight: 1.4 }}>
+          {upiMessage}
+        </div>
+      )}
     </div>
   );
 }
