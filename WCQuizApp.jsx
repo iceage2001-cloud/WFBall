@@ -139,6 +139,7 @@ function TeamBadge({ iso, code, name }) {
       fontSize: 12,
       fontWeight: 700,
       lineHeight: 1,
+      whiteSpace: "nowrap",
     }}>
       {!imgError ? (
         <img
@@ -241,7 +242,7 @@ function ScheduleTable() {
     <div style={{
       marginBottom: 14,
       border: "1px solid rgba(245,197,24,0.2)",
-      borderRadius: 14,
+      borderRadius: 8,
       background: "rgba(255,255,255,0.04)",
       boxShadow: "0 0 24px rgba(0,0,0,0.16)",
       padding: 12,
@@ -249,13 +250,27 @@ function ScheduleTable() {
       <div style={{ fontSize: 12, color: GOLD, fontWeight: 800, marginBottom: 8, letterSpacing: 1.1, textTransform: "uppercase" }}>
         Full Match Schedule
       </div>
-      <div style={{ display: "grid", gap: 8, maxHeight: 280, overflowY: "auto", paddingRight: 4 }}>
+      <div style={{ display: "grid", gap: 8, maxHeight: 280, overflowY: "auto", overflowX: "auto", paddingRight: 4 }}>
         {MATCH_SCHEDULE.map((item, idx) => (
-          <div key={`${item.label}-${idx}`} style={{ display: "grid", gridTemplateColumns: "90px 1fr 90px", gap: 8, alignItems: "center", borderBottom: idx < MATCH_SCHEDULE.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none", paddingBottom: idx < MATCH_SCHEDULE.length - 1 ? 8 : 0 }}>
+          <div key={`${item.label}-${idx}`} style={{
+            display: "grid",
+            gridTemplateColumns: "100px minmax(360px, 1fr) 95px 130px",
+            gap: 8,
+            alignItems: "center",
+            minWidth: 700,
+            borderBottom: idx < MATCH_SCHEDULE.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
+            paddingBottom: idx < MATCH_SCHEDULE.length - 1 ? 8 : 0,
+          }}>
             <div style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}>{item.date}</div>
-            <div>
-              <div style={{ color: "#f8f9fa", fontSize: 13, fontWeight: 700 }}>{item.label}</div>
-              <div style={{ color: "#f8f9fa", fontSize: 12, marginTop: 2, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <div style={{ color: "#f8f9fa", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+              <span style={{
+                padding: "3px 8px",
+                borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.05)",
+                fontSize: 11,
+                color: "#d8e9df",
+              }}>{item.label}</span>
                 <TeamBadge iso={item.isoA} code={item.codeA} name={item.countryA} />
                 <span style={{
                   padding: "3px 8px",
@@ -267,10 +282,9 @@ function ScheduleTable() {
                   letterSpacing: 0.7,
                 }}>VS</span>
                 <TeamBadge iso={item.isoB} code={item.codeB} name={item.countryB} />
-              </div>
-              <div style={{ color: "#88a395", fontSize: 11, marginTop: 2 }}>{item.venue}</div>
             </div>
             <div style={{ color: "#b9c9be", fontSize: 12, textAlign: "right" }}>{item.time}</div>
+            <div style={{ color: "#88a395", fontSize: 11, textAlign: "right", whiteSpace: "nowrap" }}>{item.venue}</div>
           </div>
         ))}
       </div>
