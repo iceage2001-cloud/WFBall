@@ -500,20 +500,88 @@ function persistHighScores(updated) {
   window.storage?.set?.("wc_highscores", JSON.stringify(updated)).catch?.(() => {});
 }
 
+const PLAYER_SPOTLIGHT = [
+  { id: "player-messi", text: "Who is most likely to create the biggest tournament moment: Lionel Messi, Mbappe, Bellingham, or Vinicius Jr.?" },
+  { id: "player-keeper", text: "Which goalkeeper will keep the most clean sheets at this stage: Alisson, Martinez, Courtois, or Neuer?" },
+  { id: "player-boot", text: "Who is your early Golden Boot favorite: Mbappe, Haaland, Vinicius Jr., or Kane?" },
+];
+
+const GENERAL_FIFA_POLLS = [
+  { id: "general-host", text: "Which host nation will go furthest in this World Cup: USA, Mexico, or Canada?" },
+  { id: "general-surprise", text: "Which continent will deliver the biggest surprise run: Africa, Asia, South America, or Europe?" },
+  { id: "general-final", text: "What final matchup would you most like to watch this year?" },
+];
+
+function buildGeneratedCommunityQuestions() {
+  const matchPolls = MATCH_SCHEDULE
+    .filter((item) => item.status === "Upcoming" && item.confirmed)
+    .slice(0, 4)
+    .map((item, idx) => ({
+      id: `match-${idx}-${item.codeA}-${item.codeB}`,
+      text: `Who will win this match: ${item.countryA} vs ${item.countryB}?`,
+      topic: "FIFA Matches",
+      status: "Pending Review",
+      votes: 0,
+      createdAt: item.kickoffAt || new Date().toISOString(),
+    }));
+
+  const playerPolls = PLAYER_SPOTLIGHT.map((item) => ({
+    id: item.id,
+    text: item.text,
+    topic: "Players",
+    status: "Pending Review",
+    votes: 0,
+    createdAt: new Date().toISOString(),
+  }));
+
+  const generalPolls = GENERAL_FIFA_POLLS.map((item) => ({
+    id: item.id,
+    text: item.text,
+    topic: "General FIFA",
+    status: "Pending Review",
+    votes: 0,
+    createdAt: new Date().toISOString(),
+  }));
+
+  return [...matchPolls, ...playerPolls, ...generalPolls];
+}
+
 function loadCommunityQuestions() {
+  const generated = buildGeneratedCommunityQuestions();
+
   try {
     const raw = window.localStorage?.getItem("wc_community_questions");
-    if (!raw) return [];
+    if (!raw) return generated;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return generated;
+
+    const votesById = new Map(parsed.map((item) => [item.id, Number(item.votes) || 0]));
+    return generated.map((item) => ({ ...item, votes: votesById.get(item.id) || 0 }));
   } catch {
-    return [];
+    return generated;
   }
 }
 
 function persistCommunityQuestions(items) {
   try {
     window.localStorage?.setItem("wc_community_questions", JSON.stringify(items));
+  } catch {}
+}
+
+function loadCommunityVotedMap() {
+  try {
+    const raw = window.localStorage?.getItem("wc_community_voted");
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function persistCommunityVotedMap(votedMap) {
+  try {
+    window.localStorage?.setItem("wc_community_voted", JSON.stringify(votedMap));
   } catch {}
 }
 
@@ -529,8 +597,7 @@ export default function WCQuizApp() {
   const [answers, setAnswers] = useState([]);
   const [highScores, setHighScores] = useState({});
   const [communityQuestions, setCommunityQuestions] = useState([]);
-  const [communityText, setCommunityText] = useState("");
-  const [communityTopic, setCommunityTopic] = useState("");
+  const [communityVoted, setCommunityVoted] = useState({});
   const timerRef = useRef(null);
 
   // Load high scores for web deploy + optional storage adapter
@@ -541,38 +608,24 @@ export default function WCQuizApp() {
     })();
 
     setCommunityQuestions(loadCommunityQuestions());
+    setCommunityVoted(loadCommunityVotedMap());
   }, []);
 
-  const submitCommunityQuestion = useCallback(() => {
-    const trimmed = communityText.trim();
-    if (!trimmed) return;
-
-    const item = {
-      id: Date.now().toString(36),
-      text: trimmed,
-      topic: communityTopic.trim() || "General",
-      votes: 0,
-      status: "Pending Review",
-      createdAt: new Date().toISOString(),
-    };
-
-    setCommunityQuestions(prev => {
-      const next = [item, ...prev];
-      persistCommunityQuestions(next);
-      return next;
-    });
-
-    setCommunityText("");
-    setCommunityTopic("");
-  }, [communityText, communityTopic]);
-
   const voteCommunityQuestion = useCallback((id) => {
+    if (communityVoted[id]) return;
+
     setCommunityQuestions(prev => {
       const next = prev.map(item => item.id === id ? { ...item, votes: item.votes + 1 } : item);
       persistCommunityQuestions(next);
       return next;
     });
-  }, []);
+
+    setCommunityVoted(prev => {
+      const next = { ...prev, [id]: true };
+      persistCommunityVotedMap(next);
+      return next;
+    });
+  }, [communityVoted]);
 
   const startQuiz = (cat) => {
     setCategory(cat);
@@ -813,66 +866,14 @@ export default function WCQuizApp() {
           <div style={{ ...card({ marginBottom: 12 }) }}>
             <h2 style={{ margin: 0, color: GOLD, fontSize: 22 }}>Community Questions</h2>
             <p style={{ color: "#9fb3a8", fontSize: 12, margin: "8px 0 0" }}>
-              Fans can submit and vote. All submissions remain Pending Review until your team approves them.
+              FIFA match, player, and general polls are generated automatically when the page loads. Users can vote only.
             </p>
-          </div>
-
-          <div style={{ ...card({ marginBottom: 14 }) }}>
-            <div style={{ color: "#cdebd8", fontSize: 12, marginBottom: 6 }}>Submit a question idea</div>
-            <textarea
-              value={communityText}
-              onChange={(e) => setCommunityText(e.target.value)}
-              placeholder="Write a World Cup question suggestion..."
-              rows={4}
-              style={{
-                width: "100%",
-                resize: "vertical",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.2)",
-                background: "rgba(255,255,255,0.04)",
-                color: "#eef7f1",
-                padding: 10,
-                fontSize: 13,
-                marginBottom: 8,
-              }}
-            />
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                value={communityTopic}
-                onChange={(e) => setCommunityTopic(e.target.value)}
-                placeholder="Topic (optional, e.g. History)"
-                style={{
-                  flex: 1,
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.04)",
-                  color: "#eef7f1",
-                  padding: "10px 12px",
-                  fontSize: 13,
-                }}
-              />
-              <button
-                onClick={submitCommunityQuestion}
-                style={{
-                  background: GOLD,
-                  color: GREEN_DARK,
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Submit
-              </button>
-            </div>
           </div>
 
           <div style={{ display: "grid", gap: 10 }}>
             {sortedItems.length === 0 && (
               <div style={{ ...card({ textAlign: "center", color: "#9fb3a8", fontSize: 13 }) }}>
-                No submissions yet. Be the first to add one.
+                Polls are being prepared. Refresh in a moment.
               </div>
             )}
 
@@ -896,18 +897,19 @@ export default function WCQuizApp() {
                   <span style={{ fontSize: 12, color: "#9fb3a8" }}>Votes: {item.votes}</span>
                   <button
                     onClick={() => voteCommunityQuestion(item.id)}
+                    disabled={!!communityVoted[item.id]}
                     style={{
-                      background: "rgba(245,197,24,0.14)",
-                      color: GOLD,
-                      border: "1px solid rgba(245,197,24,0.35)",
+                      background: communityVoted[item.id] ? "rgba(255,255,255,0.07)" : "rgba(245,197,24,0.14)",
+                      color: communityVoted[item.id] ? "#9fb3a8" : GOLD,
+                      border: communityVoted[item.id] ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(245,197,24,0.35)",
                       borderRadius: 8,
                       padding: "6px 10px",
                       fontSize: 12,
                       fontWeight: 700,
-                      cursor: "pointer",
+                      cursor: communityVoted[item.id] ? "default" : "pointer",
                     }}
                   >
-                    Vote 👍
+                    {communityVoted[item.id] ? "Voted" : "Vote 👍"}
                   </button>
                 </div>
               </div>
