@@ -361,7 +361,7 @@ function RevenueBlock() {
   const supportLabel = "Support via UPI";
   const cardLabel = "Pay by Debit/Credit Card (VISA)";
   const sponsorLabel = "Advertise / Sponsor";
-  const quickAmounts = [49, 99, 199];
+  const cardTargetLink = HAS_CARD_PAYMENT ? CARD_PAYMENT_LINK : "/contact.html";
   const [upiMessage, setUpiMessage] = useState("");
   const isAndroid = /Android/i.test(navigator.userAgent || "");
 
@@ -408,40 +408,14 @@ function RevenueBlock() {
     }
   };
 
-  const handleQuickAmount = (amount) => {
-    if (!HAS_UPI_DONATE) {
-      setUpiMessage("UPI is not configured yet.");
-      return;
-    }
-    try {
-      window.location.href = buildUpiPaymentLink(amount);
-      setUpiMessage(`Opening UPI app for INR ${amount}...`);
-    } catch {
-      setUpiMessage(`Could not open UPI app for INR ${amount}. Please try again.`);
-    }
-  };
-
-  const handleCopyUpiId = async () => {
-    try {
-      await navigator.clipboard.writeText(DECODED_UPI_ID);
-      setUpiMessage("UPI ID copied. Paste in any UPI app to pay.");
-    } catch {
-      setUpiMessage("Could not copy UPI ID automatically. Please use your saved UPI app.");
-    }
-  };
-
   const handleCardPaymentClick = (event) => {
-    event.preventDefault();
-    if (!HAS_CARD_PAYMENT) {
-      setUpiMessage("Card payment link is not configured yet. Add your checkout URL in CARD_PAYMENT_LINK.");
+    if (HAS_CARD_PAYMENT) {
+      setUpiMessage("Opening secure card payment page...");
       return;
     }
-    try {
-      window.open(CARD_PAYMENT_LINK, "_blank", "noopener,noreferrer");
-      setUpiMessage("Opening secure card payment page...");
-    } catch {
-      setUpiMessage("Could not open card payment page. Please try again.");
-    }
+    event.preventDefault();
+    setUpiMessage("Card checkout URL is not configured yet. Opening contact page for setup.");
+    window.location.href = cardTargetLink;
   };
 
   return (
@@ -485,7 +459,7 @@ function RevenueBlock() {
       </div>
       <div style={{ marginTop: 10 }}>
         <a
-          href={CARD_PAYMENT_LINK}
+          href={cardTargetLink}
           onClick={handleCardPaymentClick}
           style={{
             display: "block",
@@ -502,46 +476,6 @@ function RevenueBlock() {
         >
           {cardLabel}
         </a>
-      </div>
-      <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-        {quickAmounts.map((amount) => (
-          <button
-            key={amount}
-            type="button"
-            onClick={() => handleQuickAmount(amount)}
-            style={{
-              padding: "8px 8px",
-              borderRadius: 8,
-              border: "1px solid rgba(34,197,94,0.35)",
-              background: "rgba(34,197,94,0.08)",
-              color: "#86efac",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            Pay INR {amount}
-          </button>
-        ))}
-      </div>
-      <div style={{ marginTop: 8 }}>
-        <button
-          type="button"
-          onClick={handleCopyUpiId}
-          style={{
-            width: "100%",
-            padding: "8px 10px",
-            borderRadius: 8,
-            border: "1px solid rgba(255,255,255,0.2)",
-            background: "rgba(255,255,255,0.04)",
-            color: "#dbeafe",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          Copy UPI ID
-        </button>
       </div>
       {isAndroid && (
         <div style={{ marginTop: 10 }}>
