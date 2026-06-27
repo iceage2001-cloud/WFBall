@@ -108,12 +108,16 @@ const GUIDE_LINKS = [
   { href: "/faq.html", label: "FAQ and Editorial Policy" },
 ];
 const SUPPORT_LINK = "mailto:contact.wcquizportal@gmail.com?subject=Sponsor%20WC%202026%20Quiz%20Portal";
-const RAZORPAY_UPI_LINK = "https://rzp.io/l/your-link";
 const OBFUSCATED_UPI_ID = "aWNlYWdlMjAwMUBva2ljaWNp";
 const DECODED_UPI_ID = (() => {
   try { return atob(OBFUSCATED_UPI_ID); } catch { return "iceage2001@okicici"; }
 })();
-const UPI_QUERY = `pa=${encodeURIComponent(DECODED_UPI_ID)}&pn=${encodeURIComponent("WC 2026 Quiz Portal")}&tn=${encodeURIComponent("Support via UPI")}&cu=INR`;
+const UPI_QUERY_BASE = `pa=${encodeURIComponent(DECODED_UPI_ID)}&pn=${encodeURIComponent("WC 2026 Quiz Portal")}&tn=${encodeURIComponent("Support via UPI")}&cu=INR`;
+function buildUpiPaymentLink(amountInr) {
+  if (!amountInr) return `upi://pay?${UPI_QUERY_BASE}`;
+  return `upi://pay?${UPI_QUERY_BASE}&am=${encodeURIComponent(amountInr)}`;
+}
+const UPI_QUERY = UPI_QUERY_BASE;
 const UPI_DONATE_LINK = `upi://pay?${UPI_QUERY}`;
 const UPI_APPS = [
   { label: "Google Pay", packageName: "com.google.android.apps.nbu.paisa.user" },
@@ -127,7 +131,6 @@ function buildUpiIntentUrl(packageName) {
 const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21";
 const HAS_AFFILIATE_LINK = !AFFILIATE_LINK.includes("tag=yourtag-21");
 const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4;
-const HAS_RAZORPAY_UPI = /^https?:\/\//i.test(RAZORPAY_UPI_LINK) && !RAZORPAY_UPI_LINK.includes("your-link");
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
@@ -355,8 +358,7 @@ function AdBanner({ size = "leaderboard" }) {
 function RevenueBlock() {
   const supportLabel = "Support via UPI";
   const sponsorLabel = "Advertise / Sponsor";
-  const razorpayLabel = HAS_RAZORPAY_UPI ? "Pay via Razorpay UPI" : "Pay via UPI (Razorpay fallback)";
-  const razorpayTargetLink = HAS_RAZORPAY_UPI ? RAZORPAY_UPI_LINK : UPI_DONATE_LINK;
+  const quickAmounts = [49, 99, 199];
   const [upiMessage, setUpiMessage] = useState("");
   const isAndroid = /Android/i.test(navigator.userAgent || "");
 
@@ -403,18 +405,25 @@ function RevenueBlock() {
     }
   };
 
-  const handleRazorpayClick = (event) => {
-    event.preventDefault();
+  const handleQuickAmount = (amount) => {
+    if (!HAS_UPI_DONATE) {
+      setUpiMessage("UPI is not configured yet.");
+      return;
+    }
     try {
-      if (HAS_RAZORPAY_UPI) {
-        window.open(razorpayTargetLink, "_blank", "noopener,noreferrer");
-        setUpiMessage("Opened Razorpay payment page in a new tab.");
-      } else {
-        window.location.href = razorpayTargetLink;
-        setUpiMessage("Razorpay link is not configured, so direct UPI payment was opened.");
-      }
+      window.location.href = buildUpiPaymentLink(amount);
+      setUpiMessage(`Opening UPI app for INR ${amount}...`);
     } catch {
-      setUpiMessage("Could not open payment page. Please try again.");
+      setUpiMessage(`Could not open UPI app for INR ${amount}. Please try again.`);
+    }
+  };
+
+  const handleCopyUpiId = async () => {
+    try {
+      await navigator.clipboard.writeText(DECODED_UPI_ID);
+      setUpiMessage(`UPI ID copied: ${DECODED_UPI_ID}`);
+    } catch {
+      setUpiMessage(`Could not copy automatically. UPI ID: ${DECODED_UPI_ID}`);
     }
   };
 
@@ -457,25 +466,45 @@ function RevenueBlock() {
           {sponsorLabel}
         </a>
       </div>
-      <div style={{ marginTop: 10 }}>
-        <a
-          href={razorpayTargetLink}
-          onClick={handleRazorpayClick}
+      <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+        {quickAmounts.map((amount) => (
+          <button
+            key={amount}
+            type="button"
+            onClick={() => handleQuickAmount(amount)}
+            style={{
+              padding: "8px 8px",
+              borderRadius: 8,
+              border: "1px solid rgba(34,197,94,0.35)",
+              background: "rgba(34,197,94,0.08)",
+              color: "#86efac",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Pay INR {amount}
+          </button>
+        ))}
+      </div>
+      <div style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={handleCopyUpiId}
           style={{
-            display: "block",
-            textDecoration: "none",
-            textAlign: "center",
-            padding: "10px",
-            borderRadius: 10,
-            border: "1px solid rgba(56,189,248,0.35)",
-            color: "#bae6fd",
+            width: "100%",
+            padding: "8px 10px",
+            borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: "rgba(255,255,255,0.04)",
+            color: "#dbeafe",
             fontSize: 12,
-            fontWeight: 800,
-            background: "rgba(56,189,248,0.08)",
+            fontWeight: 700,
+            cursor: "pointer",
           }}
         >
-          {razorpayLabel}
-        </a>
+          Copy UPI ID ({DECODED_UPI_ID})
+        </button>
       </div>
       {isAndroid && (
         <div style={{ marginTop: 10 }}>
