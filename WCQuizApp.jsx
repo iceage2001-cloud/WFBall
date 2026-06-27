@@ -108,6 +108,7 @@ const GUIDE_LINKS = [
   { href: "/faq.html", label: "FAQ and Editorial Policy" },
 ];
 const SUPPORT_LINK = "mailto:contact.wcquizportal@gmail.com?subject=Sponsor%20WC%202026%20Quiz%20Portal";
+const RAZORPAY_UPI_LINK = "https://rzp.io/l/your-link";
 const OBFUSCATED_UPI_ID = "aWNlYWdlMjAwMUBva2ljaWNp";
 const DECODED_UPI_ID = (() => {
   try { return atob(OBFUSCATED_UPI_ID); } catch { return "iceage2001@okicici"; }
@@ -126,6 +127,7 @@ function buildUpiIntentUrl(packageName) {
 const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21";
 const HAS_AFFILIATE_LINK = !AFFILIATE_LINK.includes("tag=yourtag-21");
 const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4;
+const HAS_RAZORPAY_UPI = /^https?:\/\//i.test(RAZORPAY_UPI_LINK) && !RAZORPAY_UPI_LINK.includes("your-link");
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
@@ -353,6 +355,7 @@ function AdBanner({ size = "leaderboard" }) {
 function RevenueBlock() {
   const supportLabel = "Support via UPI";
   const sponsorLabel = "Advertise / Sponsor";
+  const razorpayLabel = "Pay via Razorpay UPI";
   const [upiMessage, setUpiMessage] = useState("");
   const isAndroid = /Android/i.test(navigator.userAgent || "");
 
@@ -399,6 +402,20 @@ function RevenueBlock() {
     }
   };
 
+  const handleRazorpayClick = (event) => {
+    event.preventDefault();
+    if (!HAS_RAZORPAY_UPI) {
+      setUpiMessage("Razorpay link is not configured yet.");
+      return;
+    }
+    try {
+      window.open(RAZORPAY_UPI_LINK, "_blank", "noopener,noreferrer");
+      setUpiMessage("Opened Razorpay payment page in a new tab.");
+    } catch {
+      setUpiMessage("Could not open Razorpay page. Please try again.");
+    }
+  };
+
   return (
     <div style={{
       marginTop: 14,
@@ -436,6 +453,26 @@ function RevenueBlock() {
           background: "rgba(245,197,24,0.08)",
         }}>
           {sponsorLabel}
+        </a>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <a
+          href={RAZORPAY_UPI_LINK}
+          onClick={handleRazorpayClick}
+          style={{
+            display: "block",
+            textDecoration: "none",
+            textAlign: "center",
+            padding: "10px",
+            borderRadius: 10,
+            border: "1px solid rgba(56,189,248,0.35)",
+            color: "#bae6fd",
+            fontSize: 12,
+            fontWeight: 800,
+            background: "rgba(56,189,248,0.08)",
+          }}
+        >
+          {razorpayLabel}
         </a>
       </div>
       {isAndroid && (
@@ -633,6 +670,7 @@ export default function WCQuizApp() {
   const [highScores, setHighScores] = useState({});
   const [communityQuestions, setCommunityQuestions] = useState([]);
   const [communityVoted, setCommunityVoted] = useState({});
+  const [showVoteReview, setShowVoteReview] = useState(false);
   const timerRef = useRef(null);
 
   // Load high scores for web deploy + optional storage adapter
@@ -897,6 +935,23 @@ export default function WCQuizApp() {
       return votesB - votesA;
     });
 
+    const reviewRows = sortedItems.map((item) => {
+      const counts = item.voteCounts || [0, 0, 0];
+      const totalVotes = counts.reduce((sum, n) => sum + n, 0);
+      const topIndex = counts[0] >= counts[1] && counts[0] >= counts[2]
+        ? 0
+        : counts[1] >= counts[2]
+          ? 1
+          : 2;
+      return {
+        id: item.id,
+        topic: item.topic,
+        question: item.text,
+        totalVotes,
+        topOption: item.options?.[topIndex] || "-",
+      };
+    });
+
     return (
       <div style={wrapStyle}>
         <div style={{ width: "100%", maxWidth: 640 }}>
@@ -908,11 +963,55 @@ export default function WCQuizApp() {
           </button>
 
           <div style={{ ...card({ marginBottom: 12 }) }}>
-            <h2 style={{ margin: 0, color: GOLD, fontSize: 22 }}>Community Questions</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+              <h2 style={{ margin: 0, color: GOLD, fontSize: 22 }}>Community Questions</h2>
+              <button
+                onClick={() => setShowVoteReview((v) => !v)}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  background: "rgba(255,255,255,0.04)",
+                  color: "#d1fae5",
+                  borderRadius: 8,
+                  padding: "7px 10px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {showVoteReview ? "Hide Vote Review" : "Review Votes"}
+              </button>
+            </div>
             <p style={{ color: "#9fb3a8", fontSize: 12, margin: "8px 0 0" }}>
               FIFA match, player, and general polls are generated automatically when the page loads. Users can vote only.
             </p>
           </div>
+
+          {showVoteReview && (
+            <div style={{ ...card({ marginBottom: 12, padding: 14 }) }}>
+              <div style={{ color: GOLD, fontSize: 12, fontWeight: 800, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+                Vote Review Summary
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {reviewRows.map((row) => (
+                  <div
+                    key={row.id}
+                    style={{
+                      border: "1px solid rgba(255,255,255,0.14)",
+                      borderRadius: 10,
+                      padding: 10,
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <div style={{ color: GOLD, fontSize: 11, fontWeight: 700, marginBottom: 4 }}>{row.topic}</div>
+                    <div style={{ color: "#eaf5ef", fontSize: 12, lineHeight: 1.45, marginBottom: 6 }}>{row.question}</div>
+                    <div style={{ color: "#9fb3a8", fontSize: 11 }}>
+                      Total votes: {row.totalVotes} · Leading option: {row.topOption}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: "grid", gap: 10 }}>
             {sortedItems.length === 0 && (
