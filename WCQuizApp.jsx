@@ -358,11 +358,14 @@ function AdBanner({ size = "leaderboard" }) {
 }
 
 function RevenueBlock() {
-  const supportLabel = "Support via UPI";
+  const supportLabel = "Send Thanks";
   const cardLabel = "Pay by Debit/Credit Card (VISA)";
   const sponsorLabel = "Advertise / Sponsor";
   const cardTargetLink = HAS_CARD_PAYMENT ? CARD_PAYMENT_LINK : "/contact.html";
+  const thanksAmounts = [49, 99, 199, 499];
   const [upiMessage, setUpiMessage] = useState("");
+  const [showThanksPanel, setShowThanksPanel] = useState(false);
+  const [selectedAmount, setSelectedAmount] = useState(99);
   const isAndroid = /Android/i.test(navigator.userAgent || "");
 
   const openUpiApp = (packageName) => {
@@ -379,6 +382,11 @@ function RevenueBlock() {
 
   const handleDonateClick = (event) => {
     event.preventDefault();
+    setShowThanksPanel((v) => !v);
+    setUpiMessage("");
+  };
+
+  const payWithUpiAmount = (amount) => {
     if (!HAS_UPI_DONATE) {
       window.location.href = SUPPORT_LINK;
       return;
@@ -387,24 +395,24 @@ function RevenueBlock() {
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 
     try {
-      setUpiMessage("Trying to open your UPI app...");
-      window.location.href = UPI_DONATE_LINK;
+      setUpiMessage(`Trying to open UPI app for INR ${amount}...`);
+      window.location.href = buildUpiPaymentLink(amount);
 
       // On desktop or unsupported browsers, deep links usually do nothing.
       setTimeout(async () => {
         if (!isMobile && document.visibilityState === "visible") {
           try {
             await navigator.clipboard.writeText(DECODED_UPI_ID);
-            setUpiMessage("UPI app not found in this browser. UPI ID copied. Paste it in any UPI app to pay.");
+            setUpiMessage("UPI app not found in this browser. UPI ID copied to clipboard.");
           } catch {
-            setUpiMessage(`UPI app not found in this browser. Use this UPI ID in your app: ${DECODED_UPI_ID}`);
+            setUpiMessage("UPI app not found in this browser. Please pay via your UPI app manually.");
           }
         } else if (isMobile && isAndroid) {
           setUpiMessage("If it does not open automatically, use Open with: Google Pay / PhonePe / Paytm buttons below.");
         }
       }, 1200);
     } catch {
-      setUpiMessage(`Could not open UPI app. Use this UPI ID in your payment app: ${DECODED_UPI_ID}`);
+      setUpiMessage("Could not open UPI app. Please try another payment option.");
     }
   };
 
@@ -457,6 +465,75 @@ function RevenueBlock() {
           {sponsorLabel}
         </a>
       </div>
+      {showThanksPanel && (
+        <div style={{
+          marginTop: 10,
+          border: "1px solid rgba(245,197,24,0.22)",
+          borderRadius: 10,
+          background: "rgba(7,28,18,0.55)",
+          padding: 10,
+        }}>
+          <div style={{ fontSize: 12, color: GOLD, fontWeight: 800, marginBottom: 8, letterSpacing: 0.8 }}>
+            Choose Your Thanks Amount
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+            {thanksAmounts.map((amount) => (
+              <button
+                key={amount}
+                type="button"
+                onClick={() => setSelectedAmount(amount)}
+                style={{
+                  padding: "8px 6px",
+                  borderRadius: 8,
+                  border: selectedAmount === amount ? "1px solid rgba(245,197,24,0.55)" : "1px solid rgba(255,255,255,0.2)",
+                  background: selectedAmount === amount ? "rgba(245,197,24,0.18)" : "rgba(255,255,255,0.04)",
+                  color: selectedAmount === amount ? GOLD : "#e2ece5",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                INR {amount}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => payWithUpiAmount(selectedAmount)}
+              style={{
+                padding: "9px 8px",
+                borderRadius: 8,
+                border: "1px solid rgba(34,197,94,0.35)",
+                background: "rgba(34,197,94,0.1)",
+                color: "#86efac",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Pay INR {selectedAmount} via UPI
+            </button>
+            <a
+              href={cardTargetLink}
+              onClick={handleCardPaymentClick}
+              style={{
+                textDecoration: "none",
+                textAlign: "center",
+                padding: "9px 8px",
+                borderRadius: 8,
+                border: "1px solid rgba(59,130,246,0.35)",
+                background: "rgba(59,130,246,0.1)",
+                color: "#bfdbfe",
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              Pay by Card
+            </a>
+          </div>
+        </div>
+      )}
       <div style={{ marginTop: 10 }}>
         <a
           href={cardTargetLink}
