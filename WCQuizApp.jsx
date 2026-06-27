@@ -108,6 +108,7 @@ const GUIDE_LINKS = [
   { href: "/faq.html", label: "FAQ and Editorial Policy" },
 ];
 const SUPPORT_LINK = "mailto:contact.wcquizportal@gmail.com?subject=Sponsor%20WC%202026%20Quiz%20Portal";
+const CARD_PAYMENT_LINK = "https://example.com/your-card-checkout";
 const OBFUSCATED_UPI_ID = "aWNlYWdlMjAwMUBva2ljaWNp";
 const DECODED_UPI_ID = (() => {
   try { return atob(OBFUSCATED_UPI_ID); } catch { return "iceage2001@okicici"; }
@@ -131,6 +132,7 @@ function buildUpiIntentUrl(packageName) {
 const AFFILIATE_LINK = "https://www.amazon.in/s?k=world+cup+jersey&tag=yourtag-21";
 const HAS_AFFILIATE_LINK = !AFFILIATE_LINK.includes("tag=yourtag-21");
 const HAS_UPI_DONATE = DECODED_UPI_ID.includes("@") && DECODED_UPI_ID.length > 4;
+const HAS_CARD_PAYMENT = /^https?:\/\//i.test(CARD_PAYMENT_LINK) && !CARD_PAYMENT_LINK.includes("your-card-checkout");
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
@@ -357,6 +359,7 @@ function AdBanner({ size = "leaderboard" }) {
 
 function RevenueBlock() {
   const supportLabel = "Support via UPI";
+  const cardLabel = "Pay by Debit/Credit Card (VISA)";
   const sponsorLabel = "Advertise / Sponsor";
   const quickAmounts = [49, 99, 199];
   const [upiMessage, setUpiMessage] = useState("");
@@ -421,9 +424,23 @@ function RevenueBlock() {
   const handleCopyUpiId = async () => {
     try {
       await navigator.clipboard.writeText(DECODED_UPI_ID);
-      setUpiMessage(`UPI ID copied: ${DECODED_UPI_ID}`);
+      setUpiMessage("UPI ID copied. Paste in any UPI app to pay.");
     } catch {
-      setUpiMessage(`Could not copy automatically. UPI ID: ${DECODED_UPI_ID}`);
+      setUpiMessage("Could not copy UPI ID automatically. Please use your saved UPI app.");
+    }
+  };
+
+  const handleCardPaymentClick = (event) => {
+    event.preventDefault();
+    if (!HAS_CARD_PAYMENT) {
+      setUpiMessage("Card payment link is not configured yet. Add your checkout URL in CARD_PAYMENT_LINK.");
+      return;
+    }
+    try {
+      window.open(CARD_PAYMENT_LINK, "_blank", "noopener,noreferrer");
+      setUpiMessage("Opening secure card payment page...");
+    } catch {
+      setUpiMessage("Could not open card payment page. Please try again.");
     }
   };
 
@@ -466,6 +483,26 @@ function RevenueBlock() {
           {sponsorLabel}
         </a>
       </div>
+      <div style={{ marginTop: 10 }}>
+        <a
+          href={CARD_PAYMENT_LINK}
+          onClick={handleCardPaymentClick}
+          style={{
+            display: "block",
+            textDecoration: "none",
+            textAlign: "center",
+            padding: "10px",
+            borderRadius: 10,
+            border: "1px solid rgba(59,130,246,0.35)",
+            color: "#bfdbfe",
+            fontSize: 12,
+            fontWeight: 800,
+            background: "rgba(59,130,246,0.08)",
+          }}
+        >
+          {cardLabel}
+        </a>
+      </div>
       <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
         {quickAmounts.map((amount) => (
           <button
@@ -503,7 +540,7 @@ function RevenueBlock() {
             cursor: "pointer",
           }}
         >
-          Copy UPI ID ({DECODED_UPI_ID})
+          Copy UPI ID
         </button>
       </div>
       {isAndroid && (
