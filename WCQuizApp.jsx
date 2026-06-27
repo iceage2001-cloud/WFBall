@@ -501,15 +501,39 @@ function persistHighScores(updated) {
 }
 
 const PLAYER_SPOTLIGHT = [
-  { id: "player-messi", text: "Who is most likely to create the biggest tournament moment: Lionel Messi, Mbappe, Bellingham, or Vinicius Jr.?" },
-  { id: "player-keeper", text: "Which goalkeeper will keep the most clean sheets at this stage: Alisson, Martinez, Courtois, or Neuer?" },
-  { id: "player-boot", text: "Who is your early Golden Boot favorite: Mbappe, Haaland, Vinicius Jr., or Kane?" },
+  {
+    id: "player-messi",
+    text: "Who is most likely to create the biggest tournament moment?",
+    options: ["Lionel Messi", "Kylian Mbappe", "Jude Bellingham"],
+  },
+  {
+    id: "player-keeper",
+    text: "Which goalkeeper will keep the most clean sheets at this stage?",
+    options: ["Alisson", "Martinez", "Courtois"],
+  },
+  {
+    id: "player-boot",
+    text: "Who is your early Golden Boot favorite?",
+    options: ["Mbappe", "Haaland", "Vinicius Jr."],
+  },
 ];
 
 const GENERAL_FIFA_POLLS = [
-  { id: "general-host", text: "Which host nation will go furthest in this World Cup: USA, Mexico, or Canada?" },
-  { id: "general-surprise", text: "Which continent will deliver the biggest surprise run: Africa, Asia, South America, or Europe?" },
-  { id: "general-final", text: "What final matchup would you most like to watch this year?" },
+  {
+    id: "general-host",
+    text: "Which host nation will go furthest in this World Cup?",
+    options: ["USA", "Mexico", "Canada"],
+  },
+  {
+    id: "general-surprise",
+    text: "Which region will deliver the biggest surprise run?",
+    options: ["Africa", "Asia", "South America"],
+  },
+  {
+    id: "general-final",
+    text: "Which final matchup would you most like to watch?",
+    options: ["Argentina vs France", "Brazil vs England", "Spain vs Portugal"],
+  },
 ];
 
 function buildGeneratedCommunityQuestions() {
@@ -518,10 +542,11 @@ function buildGeneratedCommunityQuestions() {
     .slice(0, 4)
     .map((item, idx) => ({
       id: `match-${idx}-${item.codeA}-${item.codeB}`,
-      text: `Who will win this match: ${item.countryA} vs ${item.countryB}?`,
+      text: `Pick result: ${item.countryA} vs ${item.countryB}`,
       topic: "FIFA Matches",
       status: "Pending Review",
-      votes: 0,
+      options: [item.countryA, "Draw", item.countryB],
+      voteCounts: [0, 0, 0],
       createdAt: item.kickoffAt || new Date().toISOString(),
     }));
 
@@ -530,7 +555,8 @@ function buildGeneratedCommunityQuestions() {
     text: item.text,
     topic: "Players",
     status: "Pending Review",
-    votes: 0,
+    options: item.options,
+    voteCounts: [0, 0, 0],
     createdAt: new Date().toISOString(),
   }));
 
@@ -539,7 +565,8 @@ function buildGeneratedCommunityQuestions() {
     text: item.text,
     topic: "General FIFA",
     status: "Pending Review",
-    votes: 0,
+    options: item.options,
+    voteCounts: [0, 0, 0],
     createdAt: new Date().toISOString(),
   }));
 
@@ -555,8 +582,16 @@ function loadCommunityQuestions() {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return generated;
 
-    const votesById = new Map(parsed.map((item) => [item.id, Number(item.votes) || 0]));
-    return generated.map((item) => ({ ...item, votes: votesById.get(item.id) || 0 }));
+    const votesById = new Map(
+      parsed.map((item) => {
+        const validCounts = Array.isArray(item.voteCounts) && item.voteCounts.length === 3
+          ? item.voteCounts.map((n) => Number(n) || 0)
+          : [Number(item.votes) || 0, 0, 0];
+        return [item.id, validCounts];
+      })
+    );
+
+    return generated.map((item) => ({ ...item, voteCounts: votesById.get(item.id) || [0, 0, 0] }));
   } catch {
     return generated;
   }
@@ -611,17 +646,22 @@ export default function WCQuizApp() {
     setCommunityVoted(loadCommunityVotedMap());
   }, []);
 
-  const voteCommunityQuestion = useCallback((id) => {
-    if (communityVoted[id]) return;
+  const voteCommunityQuestion = useCallback((id, optionIndex) => {
+    if (communityVoted[id] !== undefined) return;
 
     setCommunityQuestions(prev => {
-      const next = prev.map(item => item.id === id ? { ...item, votes: item.votes + 1 } : item);
+      const next = prev.map((item) => {
+        if (item.id !== id) return item;
+        const updatedCounts = [...item.voteCounts];
+        updatedCounts[optionIndex] = (updatedCounts[optionIndex] || 0) + 1;
+        return { ...item, voteCounts: updatedCounts };
+      });
       persistCommunityQuestions(next);
       return next;
     });
 
     setCommunityVoted(prev => {
-      const next = { ...prev, [id]: true };
+      const next = { ...prev, [id]: optionIndex };
       persistCommunityVotedMap(next);
       return next;
     });
@@ -851,7 +891,11 @@ export default function WCQuizApp() {
 
   // ── COMMUNITY ───────────────────────────────────────────────────────────────
   if (screen === "community") {
-    const sortedItems = [...communityQuestions].sort((a, b) => b.votes - a.votes);
+    const sortedItems = [...communityQuestions].sort((a, b) => {
+      const votesA = (a.voteCounts || []).reduce((sum, n) => sum + n, 0);
+      const votesB = (b.voteCounts || []).reduce((sum, n) => sum + n, 0);
+      return votesB - votesA;
+    });
 
     return (
       <div style={wrapStyle}>
@@ -893,24 +937,45 @@ export default function WCQuizApp() {
                   </span>
                 </div>
                 <div style={{ marginTop: 8, color: "#eef7f1", fontSize: 14, lineHeight: 1.5 }}>{item.text}</div>
+                <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+                  {(item.options || []).map((opt, optIndex) => {
+                    const selectedIndex = communityVoted[item.id];
+                    const isSelected = selectedIndex === optIndex;
+                    const isLocked = selectedIndex !== undefined;
+                    const optVotes = item.voteCounts?.[optIndex] || 0;
+                    return (
+                      <button
+                        key={`${item.id}-${opt}`}
+                        onClick={() => voteCommunityQuestion(item.id, optIndex)}
+                        disabled={isLocked}
+                        style={{
+                          background: isSelected ? "rgba(245,197,24,0.2)" : "rgba(255,255,255,0.04)",
+                          color: isSelected ? GOLD : "#e8f4ec",
+                          border: isSelected ? "1px solid rgba(245,197,24,0.55)" : "1px solid rgba(255,255,255,0.18)",
+                          borderRadius: 8,
+                          padding: "8px 10px",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          textAlign: "left",
+                          cursor: isLocked ? "default" : "pointer",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span>{opt}</span>
+                        <span style={{ color: "#9fb3a8", fontSize: 11 }}>{optVotes} vote(s)</span>
+                      </button>
+                    );
+                  })}
+                </div>
                 <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "#9fb3a8" }}>Votes: {item.votes}</span>
-                  <button
-                    onClick={() => voteCommunityQuestion(item.id)}
-                    disabled={!!communityVoted[item.id]}
-                    style={{
-                      background: communityVoted[item.id] ? "rgba(255,255,255,0.07)" : "rgba(245,197,24,0.14)",
-                      color: communityVoted[item.id] ? "#9fb3a8" : GOLD,
-                      border: communityVoted[item.id] ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(245,197,24,0.35)",
-                      borderRadius: 8,
-                      padding: "6px 10px",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: communityVoted[item.id] ? "default" : "pointer",
-                    }}
-                  >
-                    {communityVoted[item.id] ? "Voted" : "Vote 👍"}
-                  </button>
+                  <span style={{ fontSize: 12, color: "#9fb3a8" }}>
+                    Total votes: {(item.voteCounts || []).reduce((sum, n) => sum + n, 0)}
+                  </span>
+                  <span style={{ fontSize: 11, color: communityVoted[item.id] !== undefined ? "#86efac" : "#9fb3a8" }}>
+                    {communityVoted[item.id] !== undefined ? "Selection saved" : "Select 1 of 3"}
+                  </span>
                 </div>
               </div>
             ))}
