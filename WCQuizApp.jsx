@@ -500,9 +500,26 @@ function persistHighScores(updated) {
   window.storage?.set?.("wc_highscores", JSON.stringify(updated)).catch?.(() => {});
 }
 
+function loadCommunityQuestions() {
+  try {
+    const raw = window.localStorage?.getItem("wc_community_questions");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistCommunityQuestions(items) {
+  try {
+    window.localStorage?.setItem("wc_community_questions", JSON.stringify(items));
+  } catch {}
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function WCQuizApp() {
-  const [screen, setScreen] = useState("home"); // home | category | quiz | result
+  const [screen, setScreen] = useState("home"); // home | category | quiz | result | community
   const [category, setCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [qIndex, setQIndex] = useState(0);
@@ -511,6 +528,9 @@ export default function WCQuizApp() {
   const [timeLeft, setTimeLeft] = useState(TIMER_MAX);
   const [answers, setAnswers] = useState([]);
   const [highScores, setHighScores] = useState({});
+  const [communityQuestions, setCommunityQuestions] = useState([]);
+  const [communityText, setCommunityText] = useState("");
+  const [communityTopic, setCommunityTopic] = useState("");
   const timerRef = useRef(null);
 
   // Load high scores for web deploy + optional storage adapter
@@ -519,6 +539,39 @@ export default function WCQuizApp() {
       const saved = await loadHighScoresFromAnySource();
       if (saved) setHighScores(saved);
     })();
+
+    setCommunityQuestions(loadCommunityQuestions());
+  }, []);
+
+  const submitCommunityQuestion = useCallback(() => {
+    const trimmed = communityText.trim();
+    if (!trimmed) return;
+
+    const item = {
+      id: Date.now().toString(36),
+      text: trimmed,
+      topic: communityTopic.trim() || "General",
+      votes: 0,
+      status: "Pending Review",
+      createdAt: new Date().toISOString(),
+    };
+
+    setCommunityQuestions(prev => {
+      const next = [item, ...prev];
+      persistCommunityQuestions(next);
+      return next;
+    });
+
+    setCommunityText("");
+    setCommunityTopic("");
+  }, [communityText, communityTopic]);
+
+  const voteCommunityQuestion = useCallback((id) => {
+    setCommunityQuestions(prev => {
+      const next = prev.map(item => item.id === id ? { ...item, votes: item.votes + 1 } : item);
+      persistCommunityQuestions(next);
+      return next;
+    });
   }, []);
 
   const startQuiz = (cat) => {
@@ -645,9 +698,17 @@ export default function WCQuizApp() {
             background: GOLD, color: GREEN_DARK, border: "none",
             borderRadius: 50, padding: "15px 44px", fontSize: 17,
             fontWeight: 900, cursor: "pointer", letterSpacing: 1,
-            boxShadow: `0 0 32px ${GOLD}66`, marginBottom: 12,
+            boxShadow: `0 0 32px ${GOLD}66`, marginBottom: 10,
           }}>
             KICK OFF ⚽
+          </button>
+          <button onClick={() => setScreen("community")} style={{
+            marginLeft: 10,
+            background: "transparent", color: "#cdebd8", border: "1px solid rgba(255,255,255,0.24)",
+            borderRadius: 50, padding: "12px 18px", fontSize: 13,
+            fontWeight: 700, cursor: "pointer",
+          }}>
+            Community Questions
           </button>
         </div>
 
@@ -734,6 +795,128 @@ export default function WCQuizApp() {
       </div>
     </div>
   );
+
+  // ── COMMUNITY ───────────────────────────────────────────────────────────────
+  if (screen === "community") {
+    const sortedItems = [...communityQuestions].sort((a, b) => b.votes - a.votes);
+
+    return (
+      <div style={wrapStyle}>
+        <div style={{ width: "100%", maxWidth: 640 }}>
+          <button
+            onClick={() => setScreen("home")}
+            style={{ background: "none", border: "none", color: "#aaa", fontSize: 14, cursor: "pointer", marginBottom: 12, padding: 0 }}
+          >
+            ← Back
+          </button>
+
+          <div style={{ ...card({ marginBottom: 12 }) }}>
+            <h2 style={{ margin: 0, color: GOLD, fontSize: 22 }}>Community Questions</h2>
+            <p style={{ color: "#9fb3a8", fontSize: 12, margin: "8px 0 0" }}>
+              Fans can submit and vote. All submissions remain Pending Review until your team approves them.
+            </p>
+          </div>
+
+          <div style={{ ...card({ marginBottom: 14 }) }}>
+            <div style={{ color: "#cdebd8", fontSize: 12, marginBottom: 6 }}>Submit a question idea</div>
+            <textarea
+              value={communityText}
+              onChange={(e) => setCommunityText(e.target.value)}
+              placeholder="Write a World Cup question suggestion..."
+              rows={4}
+              style={{
+                width: "100%",
+                resize: "vertical",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.04)",
+                color: "#eef7f1",
+                padding: 10,
+                fontSize: 13,
+                marginBottom: 8,
+              }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                value={communityTopic}
+                onChange={(e) => setCommunityTopic(e.target.value)}
+                placeholder="Topic (optional, e.g. History)"
+                style={{
+                  flex: 1,
+                  borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: "rgba(255,255,255,0.04)",
+                  color: "#eef7f1",
+                  padding: "10px 12px",
+                  fontSize: 13,
+                }}
+              />
+              <button
+                onClick={submitCommunityQuestion}
+                style={{
+                  background: GOLD,
+                  color: GREEN_DARK,
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            {sortedItems.length === 0 && (
+              <div style={{ ...card({ textAlign: "center", color: "#9fb3a8", fontSize: 13 }) }}>
+                No submissions yet. Be the first to add one.
+              </div>
+            )}
+
+            {sortedItems.map((item) => (
+              <div key={item.id} style={{ ...card({ padding: 14 }) }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                  <span style={{ color: GOLD, fontSize: 11, fontWeight: 700 }}>{item.topic}</span>
+                  <span style={{
+                    fontSize: 10,
+                    color: "#cdebd8",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: 999,
+                    padding: "3px 8px",
+                    background: "rgba(255,255,255,0.03)",
+                  }}>
+                    {item.status}
+                  </span>
+                </div>
+                <div style={{ marginTop: 8, color: "#eef7f1", fontSize: 14, lineHeight: 1.5 }}>{item.text}</div>
+                <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 12, color: "#9fb3a8" }}>Votes: {item.votes}</span>
+                  <button
+                    onClick={() => voteCommunityQuestion(item.id)}
+                    style={{
+                      background: "rgba(245,197,24,0.14)",
+                      color: GOLD,
+                      border: "1px solid rgba(245,197,24,0.35)",
+                      borderRadius: 8,
+                      padding: "6px 10px",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Vote 👍
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ── QUIZ ────────────────────────────────────────────────────────────────────
   if (screen === "quiz" && questions.length > 0) {
