@@ -355,7 +355,8 @@ function AdBanner({ size = "leaderboard" }) {
 function RevenueBlock() {
   const supportLabel = "Support via UPI";
   const sponsorLabel = "Advertise / Sponsor";
-  const razorpayLabel = "Pay via Razorpay UPI";
+  const razorpayLabel = HAS_RAZORPAY_UPI ? "Pay via Razorpay UPI" : "Pay via UPI (Razorpay fallback)";
+  const razorpayTargetLink = HAS_RAZORPAY_UPI ? RAZORPAY_UPI_LINK : UPI_DONATE_LINK;
   const [upiMessage, setUpiMessage] = useState("");
   const isAndroid = /Android/i.test(navigator.userAgent || "");
 
@@ -404,15 +405,16 @@ function RevenueBlock() {
 
   const handleRazorpayClick = (event) => {
     event.preventDefault();
-    if (!HAS_RAZORPAY_UPI) {
-      setUpiMessage("Razorpay link is not configured yet.");
-      return;
-    }
     try {
-      window.open(RAZORPAY_UPI_LINK, "_blank", "noopener,noreferrer");
-      setUpiMessage("Opened Razorpay payment page in a new tab.");
+      if (HAS_RAZORPAY_UPI) {
+        window.open(razorpayTargetLink, "_blank", "noopener,noreferrer");
+        setUpiMessage("Opened Razorpay payment page in a new tab.");
+      } else {
+        window.location.href = razorpayTargetLink;
+        setUpiMessage("Razorpay link is not configured, so direct UPI payment was opened.");
+      }
     } catch {
-      setUpiMessage("Could not open Razorpay page. Please try again.");
+      setUpiMessage("Could not open payment page. Please try again.");
     }
   };
 
@@ -457,7 +459,7 @@ function RevenueBlock() {
       </div>
       <div style={{ marginTop: 10 }}>
         <a
-          href={RAZORPAY_UPI_LINK}
+          href={razorpayTargetLink}
           onClick={handleRazorpayClick}
           style={{
             display: "block",
